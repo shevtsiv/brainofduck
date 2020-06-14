@@ -22,8 +22,19 @@ impl Interpreter {
         let mut i = 0;
         while i < program.len() {
             match program.chars().nth(i).unwrap() {
-                '>' => self.pointer = self.pointer.wrapping_add(1),
-                '<' => self.pointer = self.pointer.wrapping_sub(1),
+                '>' => {
+                    self.pointer = self.pointer.wrapping_add(1);
+                    if self.pointer == 30_000 {
+                        self.pointer = 0;
+                    }
+                }
+                '<' => {
+                    self.pointer = if let Some(decremented_pointer) = self.pointer.checked_sub(1) {
+                        decremented_pointer
+                    } else {
+                        30_000 - 1
+                    };
+                }
                 '+' => self.array[self.pointer] = self.array[self.pointer].wrapping_add(1),
                 '-' => self.array[self.pointer] = self.array[self.pointer].wrapping_sub(1),
                 '.' => writer.write_char(self.array[self.pointer] as char),
@@ -136,5 +147,25 @@ mod tests {
     pub fn sum() {
         let sum_2_and_3 = "++>+++<[->+<]>.";
         assert_eq!(interpret(sum_2_and_3).bytes().next().unwrap(), 5);
+    }
+
+    #[test]
+    pub fn pointer_underflow() {
+        let increment_with_underflow = "<+.";
+        assert_eq!(
+            interpret(increment_with_underflow).bytes().next().unwrap(),
+            1
+        );
+    }
+
+    #[test]
+    pub fn pointer_overflow() {
+        let increment_with_overflow = "+++.<.+.>.";
+        let output = interpret(increment_with_overflow);
+        let mut bytes = output.bytes();
+        assert_eq!(bytes.next().unwrap(), 3);
+        assert_eq!(bytes.next().unwrap(), 0);
+        assert_eq!(bytes.next().unwrap(), 1);
+        assert_eq!(bytes.next().unwrap(), 3);
     }
 }
