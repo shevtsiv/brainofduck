@@ -6,8 +6,10 @@ trait CharWriter {
     fn write_char(&mut self, char_to_write: char);
 }
 
+const ARRAY_MAX_SIZE: usize = 30_000;
+
 struct Interpreter {
-    array: [u8; 30_000],
+    array: [u8; ARRAY_MAX_SIZE],
     pointer: usize,
 }
 
@@ -24,7 +26,7 @@ impl Interpreter {
             match program.chars().nth(i).unwrap() {
                 '>' => {
                     self.pointer = self.pointer.wrapping_add(1);
-                    if self.pointer == 30_000 {
+                    if self.pointer == ARRAY_MAX_SIZE {
                         self.pointer = 0;
                     }
                 }
@@ -32,7 +34,7 @@ impl Interpreter {
                     self.pointer = if let Some(decremented_pointer) = self.pointer.checked_sub(1) {
                         decremented_pointer
                     } else {
-                        30_000 - 1
+                        ARRAY_MAX_SIZE - 1
                     };
                 }
                 '+' => self.array[self.pointer] = self.array[self.pointer].wrapping_add(1),
@@ -71,7 +73,7 @@ impl Interpreter {
 
 pub fn main() {
     let mut interpreter = Interpreter {
-        array: [0; 30_000],
+        array: [0; ARRAY_MAX_SIZE],
         pointer: 0,
     };
     let input = "++>++<[->+<]>.";
@@ -106,12 +108,12 @@ pub fn main() {
 
 #[cfg(test)]
 mod tests {
-    use crate::{CharReader, CharWriter};
+    use crate::{CharReader, CharWriter, ARRAY_MAX_SIZE};
 
     fn interpret(input: &str) -> String {
         use super::Interpreter;
         let mut interpreter = Interpreter {
-            array: [0; 30_000],
+            array: [0; ARRAY_MAX_SIZE],
             pointer: 0,
         };
         #[derive(Default)]
