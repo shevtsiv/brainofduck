@@ -63,7 +63,12 @@ impl Interpreter {
                         }
                     }
                 }
-                ']' => i = cycle_stack.pop().unwrap() - 1,
+                ']' => {
+                    i = match cycle_stack.pop() {
+                        Some(open_bracket_index) => open_bracket_index,
+                        None => panic!("Invalid cycle has been found!"),
+                    }
+                }
                 _ => {}
             }
             i += 1;
@@ -169,5 +174,12 @@ mod tests {
         assert_eq!(bytes.next().unwrap(), 0);
         assert_eq!(bytes.next().unwrap(), 1);
         assert_eq!(bytes.next().unwrap(), 3);
+    }
+
+    #[test]
+    #[should_panic]
+    pub fn invalid_loop_closing() {
+        let invalid_loop_closing_program = "]";
+        interpret(invalid_loop_closing_program);
     }
 }
